@@ -1,0 +1,23 @@
+.notebook-card {
+  background-color: #f9f9f9;
+  border: 2px solid #ddd;
+  box-shadow: 0 0 10px rgba(29, 32, 44, 0.1);
+  padding: 20px;
+  margin: 20px auto;
+  width: 80%;
+}
+
+.notebook-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.notebook-info {
+  font-size: 18px;
+  color: #666;
+}
+
+.info-label {
+  margin-right: 20px;
+}
+
