@@ -25,6 +25,8 @@
 *.pem
 .venv/
 /__pycache__/
+/data/
+/output/
 
 # debug
 npm-debug.log*

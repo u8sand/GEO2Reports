@@ -9,13 +9,13 @@ output_dir = project_root / "public"
 output_dir.mkdir(parents=True, exist_ok=True)
 
 def run_notebook(gse_id):
-    input_nb = project_root/"python"/"notebooks"/"truncated.ipynb"
+    input_nb = project_root/"python"/"notebooks"/"report_template.ipynb"
     output_nb = output_dir/f"{gse_id}"/f"{gse_id}.ipynb"
     output_html = output_dir/f"{gse_id}"/f"{gse_id}.html"
 
     output_nb.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"📓 Running notebook for {gse_id}...")
+    print(f"Running notebook for {gse_id}...")
 
     pm.execute_notebook(
         input_path=input_nb,
@@ -26,11 +26,11 @@ def run_notebook(gse_id):
         },
     )
 
-    print(f"✅ Notebook executed and saved at {output_nb}")
+    print(f"Notebook executed and saved at {output_nb}")
 
     with open(output_nb, 'r') as f:
         nb = nbformat.read(f, as_version=4)
-    html_exporter = HTMLExporter(template_name="classic")
+    html_exporter = HTMLExporter()
     html_exporter.exclude_input = True
     html_exporter.exclude_output_prompt = True
     html_exporter.exclude_input_prompt = True
@@ -39,7 +39,7 @@ def run_notebook(gse_id):
     with open(output_html, 'w') as f:
         f.write(html_data)
 
-    print(f"✅ HTML generated and saved at {output_html}")
+    print(f"HTML generated and saved at {output_html}")
 
 #allow it to be ran from the command line
 
