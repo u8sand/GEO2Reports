@@ -9,12 +9,39 @@ const metadataPath = 'public/metadata.json';
 //console.log("router loaded")
 
 export default router({
-  getList: procedure.query(async () => {
-    const file = await fs.readFile(metadataPath, "utf8");
-    //console.log(file);
-    const json = JSON.parse(file);
-    return Object.values(json);
+  // getList: procedure.query(async () => {
+  //   const results = await db
+  //     .selectFrom('reports')
+  //     .selectAll()
+  //     .limit(10)
+  //     .execute()
+  //   return results
+  // }),
+
+  getList: procedure.input(
+    z.object({
+      search: z.string().optional(),
+      species: z.string().optional(),
+    })
+  ).query(async ({ input }) => {
+    const {search, species} = input;
+
+    let query = db.selectFrom('reports').selectAll();
+
+    if (search) {
+      query = query.where((eb) => eb.or([
+        eb('id', '=', '${search}'),
+        eb('title', 'ilike', `%${search}%`),
+      ]))
+    } 
+
+    if (species) {
+      query = query.where('species', '=', `${species}`)
+    }
+
+    return await query.execute();
   }),
+  
 
   getHTML: procedure.input(
     z.object({
@@ -22,7 +49,7 @@ export default router({
     })
   ).query(async ({ input }) => {
     const { id } = input;
-    const file = await fs.readFile(`public/${id}/${id}.html`, "utf8");
+    const file = await fs.readFile(`public/${id}/${id}classic.html`, "utf8");
     return file;
   }),
 })

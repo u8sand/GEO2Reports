@@ -269,7 +269,7 @@ def plot_volcano(deg, threshold, save_formats, save_name = "volcano", save_html=
     
     for fmt in save_formats:
         fig_name = f"{save_name}.{fmt}"
-        fig.write_image(os.path.join(save_path, fig_name))
+        fig.write_image(os.path.join(save_path, fig_name), scale=2)
 
     if save_html:
         fig.write_html(os.path.join(save_path, f"{save_name}.html"))
