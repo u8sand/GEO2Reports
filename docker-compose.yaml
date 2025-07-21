@@ -1,7 +1,54 @@
 services:
-  postgres:
-    image: postgres
+  # postgres:
+  #   image: postgres
+  #   environment:
+  #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #   ports:
+  #   - 5432:5432
+
+  GEO2Reports-postgres:
+    image: postgres:17
+    pull_policy: missing
+    restart: unless-stopped
     environment:
+    # this should be in your .env file and set to a long random string
     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
     - 5432:5432
+    volumes:
+    - GEO2Reports-postgres-data:/var/lib/postgresql/data
+
+  GEO2Reports-minio:
+    image: quay.io/minio/minio
+    pull_policy: missing
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+    - MINIO_ROOT_USER=minio
+    # this should be in your .env file and set to a long random string
+    - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    ports:
+    - target: 9000
+      published: 9000
+      x-kubernetes:
+        annotations:
+          maayanlab.cloud/ingress: https://s3.GEO2Reports.k8s.dev.maayanlab.cloud
+    - target: 9001
+      published: 9001
+      x-kubernetes:
+        annotations:
+          maayanlab.cloud/ingress: https://console.s3.GEO2Reports.k8s.dev.maayanlab.cloud
+    volumes:
+    - GEO2Reports-minio-data:/data
+
+volumes:
+  GEO2Reports-postgres-data:
+    x-kubernetes:
+      size: 1Gi
+      class: local-path
+  
+  GEO2Reports-minio-data:
+    x-kubernetes:
+      size: 1Gi
+      class: local-path
+

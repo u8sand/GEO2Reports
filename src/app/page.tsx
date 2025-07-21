@@ -33,15 +33,22 @@ export default function Home() {
 
     return (
         <div>
-            <div className="search-container flex justify-center">
-                <input
-                    type="text"
-                    className="search-input join-item flex border w-full max-w-md"
-                    placeholder="Search by GSE or metadata..."
-                    value={search}
-                    onChange={(e) => getSearch(e.target.value)}
-                    onKeyDown={handleEnterKey}
-                />
+            <div className="search-container flex justify-space-between gap-2 flex-wrap">
+                <div className="join flex max-w-xl w-full">                    
+                    <input
+                        type="text"
+                        className="search-input join-item flex border w-full max-w-xl"
+                        placeholder="Search by GSE or metadata..."
+                        value={search}
+                        onChange={(e) => getSearch(e.target.value)}
+                        onKeyDown={handleEnterKey}
+                    />
+                    <button onClick={handleClick} className="btn join-item text-white 
+                        bg-blue-700 hover:bg-blue-800 
+                        focus:ring-4 focus:ring-blue-300 font-medium 
+                        rounded-lg text-sm px-5 py-2.5 me-2 mb-0 dark:bg-blue-600 
+                        dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Search</button>                    
+                </div>
                 <select className="species-select border"
                     value={species} onChange={(e) => getSpecies(e.target.value)}>
                     <option value="">All species</option>

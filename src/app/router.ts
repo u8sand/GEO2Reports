@@ -9,14 +9,6 @@ const metadataPath = 'public/metadata.json';
 //console.log("router loaded")
 
 export default router({
-  // getList: procedure.query(async () => {
-  //   const results = await db
-  //     .selectFrom('reports')
-  //     .selectAll()
-  //     .limit(10)
-  //     .execute()
-  //   return results
-  // }),
 
   getList: procedure.input(
     z.object({
@@ -28,9 +20,11 @@ export default router({
 
     let query = db.selectFrom('reports').selectAll();
 
+    const normalizedSearch = (search ?? '').trim().toLowerCase();
+
     if (search) {
       query = query.where((eb) => eb.or([
-        eb('id', '=', '${search}'),
+        eb(sql`LOWER(id)`, '=', normalizedSearch),
         eb('title', 'ilike', `%${search}%`),
       ]))
     } 
