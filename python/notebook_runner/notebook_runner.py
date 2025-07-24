@@ -1,36 +1,43 @@
 import papermill as pm
-from pathlib import Path
-import argparse
 import nbformat
 from nbconvert import HTMLExporter
+from minio import Minio
+from urllib.parse import urlparse
+from tempfile import TemporaryDirectory
+import os
+import shutil
+import psycopg2 
+import dotenv
+import json
+import io
+from datetime import date 
 
-project_root = Path(__file__).resolve().parents[2]  
-output_dir = project_root / "public"
-output_dir.mkdir(parents=True, exist_ok=True)
+dotenv.load_dotenv()
 
-def run_notebook(gse_id):
-    input_nb = project_root/"python"/"notebooks"/"report_template.ipynb"
-    output_nb = output_dir/f"{gse_id}"/f"{gse_id}.ipynb"
-    output_html = output_dir/f"{gse_id}"/f"{gse_id}.html"
-
-    output_nb.parent.mkdir(parents=True, exist_ok=True)
-
-    print(f"Running notebook for {gse_id}...")
+def run_notebook(gse_id, tmpdir):
+    root_dir = os.path.realpath(os.path.join(os.getcwd(), '..')) #check on this. still a bit uneasy.
+    print(root_dir)
+    print(f"temp directory created at: {tmpdir}")
+    input_path = os.path.join(root_dir, "notebooks", "report_template.ipynb") #where template notebook is located
+    temp_input_path = os.path.join(tmpdir, "report_template.ipynb") 
+    shutil.copyfile(input_path, temp_input_path) #copy it into the temp directory
+    temp_output_path = os.path.join(tmpdir, f"{gse_id}.ipynb")
+    output_html = os.path.join(tmpdir, f"{gse_id}.html")
 
     pm.execute_notebook(
-        input_path=input_nb,
-        output_path=output_nb,
+        input_path=temp_input_path,
+        output_path=temp_output_path,
         parameters={
             "gse": gse_id,
-            "project_root": str(project_root)
+            "working_dir": tmpdir
         },
     )
+    print(f"Notebook executed and saved at {temp_output_path}")
 
-    print(f"Notebook executed and saved at {output_nb}")
-
-    with open(output_nb, 'r') as f:
+    #save to html
+    with open(temp_output_path, 'r') as f:
         nb = nbformat.read(f, as_version=4)
-    html_exporter = HTMLExporter()
+    html_exporter = HTMLExporter() #optional: template
     html_exporter.exclude_input = True
     html_exporter.exclude_output_prompt = True
     html_exporter.exclude_input_prompt = True
@@ -40,12 +47,58 @@ def run_notebook(gse_id):
         f.write(html_data)
 
     print(f"HTML generated and saved at {output_html}")
+    #os.remove(temp_input_path) #remove to avoid it being uploaded to S3
 
-#allow it to be ran from the command line
+def update_postgres(tmpdir, conn, cur):
+    json_path = os.path.join(tmpdir, "metadata.json")
+    with open(json_path, 'r') as f:
+        metadata = json.load(f)
+    
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+    print(cur.fetchall()) #print the table names for debugging.
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run analysis notebook for a given GEO study.")
-    parser.add_argument("gse_id", help="GSE ID to run the notebook for (e.g., GSE12345)")
-    args = parser.parse_args()
+    columns = metadata.keys()
+    values = [metadata[col] for col in columns]
 
-    run_notebook(args.gse_id)
+    query = f"""
+        INSERT INTO reports ({', '.join(columns)})
+        VALUES ({', '.join(['%s'] * len(columns))})
+        ON CONFLICT (id) DO UPDATE SET
+        {', '.join([f"{col}=EXCLUDED.{col}" for col in columns if col != 'id'])}
+    """
+
+    cur.execute(query, values)
+    conn.commit()
+    print("successfully committed")
+
+def update_s3(gse_id, tmpdir, s3, bucket):
+    
+    for root, _, files in os.walk(tmpdir):
+        for filename in files:
+            local_path = os.path.join(root, filename)
+            relative_path = os.path.relpath(local_path, tmpdir).replace("\\", "/")
+            object_key = f"{gse_id}/{relative_path}"
+
+            s3.fput_object(bucket, object_key, local_path)
+    
+    print(f"✅ Uploaded GSE {gse_id} contents to MinIO bucket '{bucket}'")
+
+        
+
+def process_gse(gse_id, conn, cur, s3, bucket):
+    cur.execute("SELECT 1 FROM reports WHERE id = %s LIMIT 1;", (gse_id,))
+    exists = cur.fetchone() is not None
+    if exists:
+        print(f"GSE {gse_id} already exists in Postgres. Skipping processing.")
+        return
+    
+    with TemporaryDirectory() as tmpdir:
+        print(f"started processing for {gse_id} in temp directory {tmpdir}")
+        try:
+            run_notebook(gse_id, tmpdir)
+            update_s3(gse_id, tmpdir, s3, bucket)
+            update_postgres(tmpdir, conn, cur)
+            print("processing successful!")
+        except Exception as e:
+            print(f"Error processing {gse_id}: {e}")
+            raise #get rid of in production so it doesnt interrupt execution

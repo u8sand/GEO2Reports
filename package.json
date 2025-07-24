@@ -12,6 +12,8 @@
     "codegen": "concurrently npm:codegen:*"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.850.0",
+    "@aws-sdk/s3-request-presigner": "^3.850.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-query": "^5.83.0",
@@ -20,6 +22,7 @@
     "@trpc/react-query": "^11.0.0-rc.808",
     "@trpc/server": "^11.0.0-rc.808",
     "@trpc/tanstack-react-query": "^11.0.0-rc.808",
+    "aws-sdk": "^2.1692.0",
     "kysely": "^0.27.6",
     "kysely-codegen": "^0.17.0",
     "next": "^15.3.5",

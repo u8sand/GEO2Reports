@@ -65,7 +65,7 @@ export default function Home() {
                     <div className="notebook-info">
                         <span className="info-label"><b>GSE:</b> <i>{notebook.id}</i></span>
                         <span className="info-label"><b>Year:</b> <i>{notebook.year}</i></span>
-                        <span className="info-label"><b>Number of Samples:</b> <i>{notebook.num_samps}</i></span>
+                        <span className="info-label"><b>Samples:</b> <i>{notebook.num_samps}</i></span>
                         <span className="info-label"><b>Species:</b> <i>{notebook.species}</i></span>
                     </div>
                     </div>

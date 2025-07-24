@@ -423,7 +423,7 @@ class druganalysis:
         df[:200].to_csv(filename, sep='\t')
         display(FileLink(filename, result_html_prefix="Download table: "))
 
-    def display_barplot(self, db, save_path, save_formats, color='tomato'): 
+    def display_barplot(self, db, save_formats, color='tomato'): 
         if db == "l2s2_fda":
             df = self.l2s2_df
             approval = "FDA-approved"
@@ -485,17 +485,17 @@ class druganalysis:
             fig.text(title_start,i,annot,ha='left', va='center', wrap = True, fontsize = 8)
 
         for fmt in save_formats:
-            file_path = os.path.join(save_path, f"{self.save_name}_{self.direction}_{db}.{fmt}")
+            file_path = os.path.join(self.save_path, f"{self.save_name}_{self.direction}_{db}.{fmt}")
             plt.savefig(file_path, bbox_inches="tight", dpi=300)
         
         #plt.show()
 
-        display(Image(os.path.join(save_path, f"{self.save_name}_{self.direction}_{db}.png"), width=600))
+        display(Image(os.path.join(self.save_path, f"{self.save_name}_{self.direction}_{db}.png"), width=600))
         display(Markdown(f"Figure {self.fig_num}: barplot representation depicting the -log10p values of the top {approval} {db} {self.direction}. Red bars represent statistically significant results; otherwise gray."))
         self.fig_num += 1
 
         for fmt in save_formats:
-            file_path = os.path.join(save_path, f"{self.save_name}_{self.direction}_{db}.{fmt}")
+            file_path = os.path.join(self.save_path, f"{self.save_name}_{self.direction}_{db}.{fmt}")
             display(FileLink(file_path, result_html_prefix=f"Download bar plot as {fmt}"))
         
         plt.close()
