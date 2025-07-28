@@ -1,6 +1,7 @@
 'use client';
 import trpc from '@/lib/trpc/client';
 import React from 'react';
+import './style.css'
 
 export default function ReportPage(props: { params: Promise<{ gse_id: string }> }) {
   const params = React.use(props.params)

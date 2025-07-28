@@ -62,10 +62,11 @@ export default function Home() {
                 <Link href={`/reports/${notebook.id}`} key={notebook.id}>
                     <div className="notebook-card cursor-pointer hover:shadow-md transition-shadow">
                     <h2 className="notebook-title truncate w-full max-w-xxl overflow-hidden whitespace-nowrap">{notebook.title}</h2>
+                    <h3 className="notebook-info"><b>Keywords:</b> {notebook.keywords}</h3>
                     <div className="notebook-info">
                         <span className="info-label"><b>GSE:</b> <i>{notebook.id}</i></span>
                         <span className="info-label"><b>Year:</b> <i>{notebook.year}</i></span>
-                        <span className="info-label"><b>Number of Samples:</b> <i>{notebook.num_samps}</i></span>
+                        <span className="info-label"><b>Samples:</b> <i>{notebook.num_samps}</i></span>
                         <span className="info-label"><b>Species:</b> <i>{notebook.species}</i></span>
                     </div>
                     </div>

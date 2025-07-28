@@ -1,12 +1,19 @@
 services:
-  # postgres:
-  #   image: postgres
-  #   environment:
-  #   - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #   ports:
-  #   - 5432:5432
+  geo2reports-app:
+    build: .
+    platform: linux/amd64
+    image: fijiwater2212/geo2reports-app:0.1.0
+    environment:
+    - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}$@geo2reports-postgres:5432/postgres
+    - S3_URL=http://minio:${MINIO_ROOT_PASSWORD}$@geo2reports-minio:9000/geo2reports
+    - PUBLIC_S3_URL=https://s3.geo2reports.k8s.dev.maayanlab.cloud
+    ports:
+    - 3000:3000
+    x-kubernetes:
+      annotations:
+        maayanlab.cloud/ingress: https://geo2reports.k8s.dev.maayanlab.cloud
 
-  GEO2Reports-postgres:
+  geo2reports-postgres:
     image: postgres:17
     pull_policy: missing
     restart: unless-stopped
@@ -16,9 +23,9 @@ services:
     ports:
     - 5432:5432
     volumes:
-    - GEO2Reports-postgres-data:/var/lib/postgresql/data
+    - geo2reports-postgres-data:/var/lib/postgresql/data
 
-  GEO2Reports-minio:
+  geo2reports-minio:
     image: quay.io/minio/minio
     pull_policy: missing
     restart: unless-stopped
@@ -32,23 +39,25 @@ services:
       published: 9000
       x-kubernetes:
         annotations:
-          maayanlab.cloud/ingress: https://s3.GEO2Reports.k8s.dev.maayanlab.cloud
+          maayanlab.cloud/ingress: https://s3.geo2reports.k8s.dev.maayanlab.cloud
     - target: 9001
       published: 9001
       x-kubernetes:
         annotations:
-          maayanlab.cloud/ingress: https://console.s3.GEO2Reports.k8s.dev.maayanlab.cloud
+          maayanlab.cloud/ingress: https://console.s3.geo2reports.k8s.dev.maayanlab.cloud
     volumes:
-    - GEO2Reports-minio-data:/data
+    - geo2reports-minio-data:/data
 
 volumes:
-  GEO2Reports-postgres-data:
+  geo2reports-postgres-data:
     x-kubernetes:
       size: 1Gi
       class: local-path
   
-  GEO2Reports-minio-data:
+  geo2reports-minio-data:
     x-kubernetes:
       size: 1Gi
       class: local-path
 
+x-kubernetes:
+  name: geo2reports
