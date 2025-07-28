@@ -13,8 +13,13 @@
   margin-bottom: 10px;
 }
 
-.notebook-info {
+.notebook-keywords {
   font-size: 18px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.notebook-info {
+  font-size: 16px;
   color: #666;
 }
 

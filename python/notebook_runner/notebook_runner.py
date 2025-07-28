@@ -11,6 +11,13 @@ import dotenv
 import json
 import io
 from datetime import date 
+from nbconvert.preprocessors import Preprocessor
+import glob
+
+class RemoveEmptyCodeCellsPreprocessor(Preprocessor):
+    def preprocess(self, nb, resources):
+        nb.cells = [cell for cell in nb.cells if not(cell.cell_type=='code' and not cell.get('outputs'))]
+        return nb, resources
 
 dotenv.load_dotenv()
 
@@ -37,17 +44,25 @@ def run_notebook(gse_id, tmpdir):
     #save to html
     with open(temp_output_path, 'r') as f:
         nb = nbformat.read(f, as_version=4)
+
+    preprocessor = RemoveEmptyCodeCellsPreprocessor()
+    nb, _ = preprocessor.preprocess(nb, {})
+    
     html_exporter = HTMLExporter() #optional: template
     html_exporter.exclude_input = True
     html_exporter.exclude_output_prompt = True
     html_exporter.exclude_input_prompt = True
+
     html_data, _ = html_exporter.from_notebook_node(nb)
     
     with open(output_html, 'w') as f:
         f.write(html_data)
 
     print(f"HTML generated and saved at {output_html}")
-    #os.remove(temp_input_path) #remove to avoid it being uploaded to S3
+    os.remove(temp_input_path) #remove to avoid it being uploaded to S3
+
+    for file in glob.glob(os.path.join(tmpdir, "*.soft.gz")):
+        os.remove(file) #remove the soft.gz file that GEOParse downloads
 
 def update_postgres(tmpdir, conn, cur):
     json_path = os.path.join(tmpdir, "metadata.json")
@@ -70,6 +85,7 @@ def update_postgres(tmpdir, conn, cur):
     cur.execute(query, values)
     conn.commit()
     print("successfully committed")
+    os.remove(json_path)
 
 def update_s3(gse_id, tmpdir, s3, bucket):
     
@@ -81,7 +97,7 @@ def update_s3(gse_id, tmpdir, s3, bucket):
 
             s3.fput_object(bucket, object_key, local_path)
     
-    print(f"✅ Uploaded GSE {gse_id} contents to MinIO bucket '{bucket}'")
+    print(f"Uploaded GSE {gse_id} contents to MinIO bucket '{bucket}'")
 
         
 

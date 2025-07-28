@@ -35,8 +35,11 @@ export default router({
     if (search) {
       query = query.where((eb) => eb.or([
         eb(sql`LOWER(id)`, '=', normalizedSearch),
-        eb('title', 'ilike', `%${search}%`),
-      ]))
+        eb(sql`search_vector`, '@@', sql`plainto_tsquery('english', ${normalizedSearch})`),
+      ])).orderBy(
+        sql`ts_rank(search_vector, plainto_tsquery('english', ${normalizedSearch}))`, //alternatively, use websearch_to_query for more advanced queries
+        'desc'
+      );
     } 
 
     if (species) {
