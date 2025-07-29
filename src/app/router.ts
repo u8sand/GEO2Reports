@@ -10,7 +10,7 @@ const metadataPath = 'public/metadata.json';
 
 const s3 = new S3Client({
   region: "us-east-1", 
-  endpoint: process.env.S3_ENDPOINT || "http://localhost:9000",
+  endpoint: process.env.S3_ENDPOINT || "http://geo2reports-minio:9000",
   credentials: {
     accessKeyId: process.env.MINIO_ROOT_USER || "minio",
     secretAccessKey: process.env.MINIO_ROOT_PASSWORD!,
