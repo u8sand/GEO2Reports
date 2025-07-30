@@ -1,5 +1,11 @@
+#largely copied over from gitignore
+
 # dependencies
 /node_modules
+!node_modules/kysely-codegen/
+!node_modules/kysely-codegen/dist/
+!node_modules/kysely-codegen/dist/db.d.ts
+
 /.pnp
 .pnp.*
 .yarn/*

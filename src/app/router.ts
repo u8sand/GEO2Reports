@@ -5,7 +5,6 @@ import { router, procedure } from "@/lib/trpc";
 import { db } from "@/lib/database";
 import { sql } from "kysely";
 
-const metadataPath = 'public/metadata.json';
 //console.log("router loaded")
 
 const s3 = new S3Client({
@@ -69,7 +68,7 @@ export default router({
 
       const streamToString = (stream: Readable): Promise<string> =>
         new Promise((resolve, reject) => {
-          const chunks: any[] = [];
+          const chunks: Buffer[] = [];
           stream.on("data", (chunk) => chunks.push(chunk));
           stream.on("error", reject);
           stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));

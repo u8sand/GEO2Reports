@@ -4,6 +4,15 @@ import Link from 'next/link';
 import './page.css';
 import trpc from "@/lib/trpc/client";
 
+type Notebook = {
+    id: string;
+    title: string;
+    keywords: string;
+    year: number;
+    num_samps: number;
+    species: string;
+}
+
 export default function Home() {
 
     const [search, getSearch] = React.useState("");
@@ -21,7 +30,7 @@ export default function Home() {
         }
     }
     
-    const all_notebooks = data || [];
+    const all_notebooks = (data || []) as Notebook[]; //forces type conversion; Python end should ensure no null fields.
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -58,7 +67,7 @@ export default function Home() {
             </div>
 
             <div className = "notebook-list">
-                {all_notebooks.map((notebook: any) => (
+                {all_notebooks.map((notebook: Notebook) => (
                 <Link href={`/reports/${notebook.id}`} key={notebook.id}>
                     <div className="notebook-card cursor-pointer hover:shadow-md transition-shadow">
                     <h2 className="notebook-title truncate w-full max-w-xxl overflow-hidden whitespace-nowrap">{notebook.title}</h2>

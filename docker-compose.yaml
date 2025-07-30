@@ -4,6 +4,7 @@ services:
     platform: linux/amd64
     image: fijiwater2212/geo2reports-app:0.1.0
     environment:
+    - NEXT_PUBLIC_URL=https://geo2reports.k8s.dev.maayanlab.cloud/
     - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@geo2reports-postgres:5432/postgres
     - S3_URL=http://minio:${MINIO_ROOT_PASSWORD}@geo2reports-minio:9000/geo2reports
     - NEXT_PUBLIC_S3_URL=https://s3.geo2reports.k8s.dev.maayanlab.cloud
