@@ -4,41 +4,12 @@ import Link from 'next/link';
 import './page.css';
 import trpc from "@/lib/trpc/client";
 
-type Notebook = {
-    id: string;
-    title: string;
-    keywords: string;
-    year: number;
-    num_samps: number;
-    species: string;
-}
-
 export default function Home() {
 
-    const [search, getSearch] = React.useState("");
-    const [querySearch, getQuerySearch] = React.useState("")
-    const [species, getSpecies] = React.useState("");
+    const [search, setSearch] = React.useState("");
+    const [querySearch, setQuerySearch] = React.useState("")
+    const [species, setSpecies] = React.useState("");
     const {data, isLoading, error} = trpc.getList.useQuery({search: querySearch, species: species});
-
-    const handleClick = () => {
-        getQuerySearch(search);
-    }
-
-    const handleEnterKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter') {
-            handleClick();
-        }
-    }
-    
-    const all_notebooks = (data || []) as Notebook[]; //forces type conversion; Python end should ensure no null fields.
-
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-    
-    if (error) {
-        return <div>Error: {error.message}</div>;
-    }
 
     return (
         <div>
@@ -49,17 +20,19 @@ export default function Home() {
                         className="search-input join-item flex border w-full max-w-xl"
                         placeholder="Search by GSE or metadata..."
                         value={search}
-                        onChange={(e) => getSearch(e.target.value)}
-                        onKeyDown={handleEnterKey}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => {if (e.key == 'Enter') { setQuerySearch(search) }}}
                     />
-                    <button onClick={handleClick} className="btn join-item text-white 
+                    <button
+                        onClick={() => { setQuerySearch(search) }}
+                        className="btn join-item text-white 
                         bg-blue-700 hover:bg-blue-800 
                         focus:ring-4 focus:ring-blue-300 font-medium 
                         rounded-lg text-sm px-5 py-2.5 me-2 mb-0 dark:bg-blue-600 
                         dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Search</button>                    
                 </div>
                 <select className="species-select border"
-                    value={species} onChange={(e) => getSpecies(e.target.value)}>
+                    value={species} onChange={(e) => setSpecies(e.target.value)}>
                     <option value="">All species</option>
                     <option value="human">Human</option>
                     <option value="mouse">Mouse</option>
@@ -67,7 +40,9 @@ export default function Home() {
             </div>
 
             <div className = "notebook-list">
-                {all_notebooks.map((notebook: Notebook) => (
+                {isLoading && <div>Loading...</div>}
+                {error && <div>Error: {error.message}</div>}
+                {data && data.map((notebook) => (
                 <Link href={`/reports/${notebook.id}`} key={notebook.id}>
                     <div className="notebook-card cursor-pointer hover:shadow-md transition-shadow">
                     <h2 className="notebook-title truncate w-full max-w-xxl overflow-hidden whitespace-nowrap">{notebook.title}</h2>
